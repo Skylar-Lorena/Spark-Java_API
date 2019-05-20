@@ -32,5 +32,17 @@ public class App {
             res.type("application/json");
             return gson.toJson(restaurant);//send it back to be displayed
         });
+
+        get("/restaurants", "application/json", (req, res) -> { //accept a request in format JSON from an app
+            res.type("application/json");
+            return gson.toJson(restaurantDao.getAll());//send it back to be displayed
+        });
+
+        get("/restaurants/:id", "application/json", (req, res) -> { //accept a request in format JSON from an app
+            res.type("application/json");
+            int restaurantId = Integer.parseInt(req.params("id"));
+            res.type("application/json");
+            return gson.toJson(restaurantDao.findById(restaurantId));
+        });
     }
 }
