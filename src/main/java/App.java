@@ -1,6 +1,7 @@
 import static spark.Spark.*;
 
 import com.google.gson.Gson;
+import exceptions.ApiException;
 import models.Foodtype;
 import models.Restaurant;
 import models.Review;
@@ -10,7 +11,9 @@ import models.dao.Sql2oReviewDao;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class App {
     public static void main(String[] args) {
@@ -30,11 +33,14 @@ public class App {
         conn = sql2o.open();
 
         //CREATE
-        post("/restaurants/new", "application/json", (req, res) -> { //accept a request in format JSON from an app
-            Restaurant restaurant = gson.fromJson(req.body(), Restaurant.class);//make java from JSON with GSON
-            restaurantDao.add(restaurant);//Do our thing with our DAO
-            res.status(201);//A-OK! But why 201??
-            return gson.toJson(restaurant);//send it back to be displayed
+        post("/restaurants/:restaurantId/reviews/new", "application/json", (req, res) -> {
+            int restaurantId = Integer.parseInt(req.params("restaurantId"));
+            Review review = gson.fromJson(req.body(), Review.class);
+
+            review.setRestaurantId(restaurantId); //we need to set this separately because it comes from our route, not our JSON input.
+            reviewDao.add(review);
+            res.status(201);
+            return gson.toJson(review);
         });
 
         post("/foodtypes/new", "application/json", (req, res) -> {
@@ -78,7 +84,32 @@ public class App {
             return gson.toJson(allReviews);
         });
 
+        get("/foodtypes", "application/json", (req, res) -> {
+            return gson.toJson(foodtypeDao.getAll());
+        });
+
+
+        //CREATE
+        post("/restaurants/new", "application/json", (req, res) -> {
+            Restaurant restaurant = gson.fromJson(req.body(), Restaurant.class);
+            restaurantDao.add(restaurant);
+            res.status(201);
+            return gson.toJson(restaurant);
+        });
+
+
         //FILTERS
+        exception(ApiException.class, (exception, req, res) -> {
+            ApiException err = (ApiException) exception;
+            Map<String, Object> jsonMap = new HashMap<>();
+            jsonMap.put("status", err.getStatusCode());
+            jsonMap.put("errorMessage", err.getMessage());
+            res.type("application/json");
+            res.status(err.getStatusCode());
+            res.body(gson.toJson(jsonMap));
+        });
+
+
         after((req, res) ->{
             res.type("application/json");
         });
