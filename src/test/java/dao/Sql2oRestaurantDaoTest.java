@@ -38,7 +38,9 @@ public class Sql2oRestaurantDaoTest {
     @Test
     public void addingFoodSetsId() throws Exception {
         Restaurant testRestaurant = setupRestaurant();
-        assertNotEquals(0, testRestaurant.getId());
+        int originalRestaurantId = testRestaurant.getId();
+        restaurantDao.add(testRestaurant);
+        assertNotEquals(originalRestaurantId, testRestaurant.getId());
     }
 
     @Test
@@ -75,9 +77,8 @@ public class Sql2oRestaurantDaoTest {
     @Test
     public void deleteByIdDeletesCorrectRestaurant() throws Exception {
         Restaurant testRestaurant = setupRestaurant();
-        Restaurant otherRestaurant = setupRestaurant();
         restaurantDao.deleteById(testRestaurant.getId());
-        assertEquals(1, restaurantDao.getAll().size());
+        assertEquals(0, restaurantDao.getAll().size());
     }
 
     @Test
@@ -89,7 +90,7 @@ public class Sql2oRestaurantDaoTest {
     }
 
     @Test
-    public void RestaurantReturnsFoodtypesCorrectly() throws Exception {
+    public void getAllFoodtypesForARestaurantReturnsFoodtypesCorrectly() throws Exception {
         Foodtype testFoodtype  = new Foodtype("Seafood");
         foodtypeDao.add(testFoodtype);
 
@@ -104,6 +105,24 @@ public class Sql2oRestaurantDaoTest {
         Foodtype[] foodtypes = {testFoodtype, otherFoodtype}; //oh hi what is this?
 
         assertEquals(Arrays.asList(foodtypes), restaurantDao.getAllFoodtypesByRestaurant(testRestaurant.getId()));
+    }
+
+    @Test
+    public void deleteingRestaurantAlsoUpdatesJoinTable() throws Exception {
+        Foodtype testFoodtype  = new Foodtype("Seafood");
+        foodtypeDao.add(testFoodtype);
+
+        Restaurant testRestaurant = setupRestaurant();
+        restaurantDao.add(testRestaurant);
+
+        Restaurant altRestaurant = setupAltRestaurant();
+        restaurantDao.add(altRestaurant);
+
+        restaurantDao.addRestaurantToFoodtype(testRestaurant,testFoodtype);
+        restaurantDao.addRestaurantToFoodtype(altRestaurant, testFoodtype);
+
+        restaurantDao.deleteById(testRestaurant.getId());
+        assertEquals(0, restaurantDao.getAllFoodtypesByRestaurant(testRestaurant.getId()).size());
     }
 
 
