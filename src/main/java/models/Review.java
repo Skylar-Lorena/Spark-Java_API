@@ -1,5 +1,7 @@
 package models;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Objects;
 
 public class Review {
@@ -7,14 +9,42 @@ public class Review {
     private String writtenBy;
     private int rating;
     private int id;
-    private int restaurantId; //will be used to connect Restaurant to Review (one-to-many)
+    private int restaurantId;
+    private long createdat;
+    private String formattedCreatedAt;
 
-    public Review(String content, String writtenBy, int rating, int restaurantId) {
-        this.content = content;
+    public Review(String writtenBy, int rating, String content, int restaurantId) {
         this.writtenBy = writtenBy;
         this.rating = rating;
+        this.content = content;
         this.restaurantId = restaurantId;
+        this.createdat = System.currentTimeMillis();
+        setFormattedCreatedAt(); //we'll make me in a minute
     }
+
+    public long getCreatedat() {
+        return createdat;
+    }
+
+    public void setCreatedat() {
+        this.createdat = System.currentTimeMillis();
+
+    }
+
+    public String getFormattedCreatedAt(){
+        Date date = new Date(createdat);
+        String datePatternToUse = "MM/dd/yyyy @ K:mm a"; //see https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
+        SimpleDateFormat sdf = new SimpleDateFormat(datePatternToUse);
+        return sdf.format(date);
+    }
+
+    public void setFormattedCreatedAt(){
+        Date date = new Date(this.createdat);
+        String datePatternToUse = "MM/dd/yyyy @ K:mm a";
+        SimpleDateFormat sdf = new SimpleDateFormat(datePatternToUse);
+        this.formattedCreatedAt = sdf.format(date);
+    }
+
 
     public String getContent() {
         return content;
