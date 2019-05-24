@@ -4,7 +4,9 @@ import models.Foodtype;
 import models.Restaurant;
 import models.dao.Sql2oFoodtypeDao;
 import models.dao.Sql2oRestaurantDao;
+import models.dao.Sql2oReviewDao;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.sql2o.Connection;
@@ -12,22 +14,33 @@ import org.sql2o.Sql2o;
 import static org.junit.Assert.*;
 
 public class Sql2oFoodtypeDaoTest {
-    private Sql2oFoodtypeDao foodtypeDao;
-    private Sql2oRestaurantDao restaurantDao;
-    private Connection conn;
+    private static Connection conn;
+    private static Sql2oRestaurantDao restaurantDao;
+    private static Sql2oFoodtypeDao foodtypeDao;
+    private static Sql2oReviewDao reviewDao;
 
     @Before
     public void setUp() throws Exception {
-        String connectionString = "jdbc:h2:mem:testing;INIT=RUNSCRIPT from 'classpath:db/create.sql'";
-        Sql2o sql2o = new Sql2o(connectionString, "", "");
+        String connectionString = "jdbc:postgresql://localhost:5432/jadle_test";
+        Sql2o sql2o = new Sql2o(connectionString, "v", "1234");
         restaurantDao = new Sql2oRestaurantDao(sql2o);
         foodtypeDao = new Sql2oFoodtypeDao(sql2o);
+        reviewDao = new Sql2oReviewDao(sql2o);
         conn = sql2o.open();
     }
 
     @After
     public void tearDown() throws Exception {
+        restaurantDao.clearAll();
+        reviewDao.clearAll();
+        foodtypeDao.clearAll();
+        System.out.println("clearing database");
+    }
+
+    @AfterClass
+    public static void shutDown() throws Exception{ //changed to static
         conn.close();
+        System.out.println("connection closed");
     }
 
     @Test
@@ -86,7 +99,7 @@ public class Sql2oFoodtypeDaoTest {
     }
 
     @Test
-    public void deleteingRestaurantAlsoUpdatesJoinTable() throws Exception {
+    public void deletingRestaurantAlsoUpdatesJoinTable() throws Exception {
         Foodtype testFoodtype  = new Foodtype("Seafood");
         foodtypeDao.add(testFoodtype);
 
@@ -104,7 +117,7 @@ public class Sql2oFoodtypeDaoTest {
     }
 
     @Test
-    public void deleteingFoodtypeAlsoUpdatesJoinTable() throws Exception {
+    public void deletingFoodtypeAlsoUpdatesJoinTable() throws Exception {
 
         Restaurant testRestaurant = setupRestaurant();
 
@@ -120,7 +133,7 @@ public class Sql2oFoodtypeDaoTest {
         foodtypeDao.addFoodtypeToRestaurant(otherFoodType,testRestaurant);
 
         foodtypeDao.deleteById(testRestaurant.getId());
-        assertEquals(0, foodtypeDao.getAllRestaurantsForAFoodtype(testFoodtype.getId()).size());
+        assertEquals(1, foodtypeDao.getAllRestaurantsForAFoodtype(testFoodtype.getId()).size());
     }
 
     // helpers
