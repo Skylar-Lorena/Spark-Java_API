@@ -1,11 +1,14 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
 group 'https://vinge1718.github.io'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
+
+mainClassName = 'App'
 
 repositories {
     mavenCentral()
