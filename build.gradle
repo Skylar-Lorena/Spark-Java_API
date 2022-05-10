@@ -6,8 +6,6 @@ plugins {
 group 'https://vinge1718.github.io'
 version '1.0-SNAPSHOT'
 
-mainClassName = 'App'
-
 sourceCompatibility = 1.8
 
 mainClassName = 'App'
@@ -17,11 +15,11 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile "com.sparkjava:spark-core:2.6.0"
-    compile 'org.slf4j:slf4j-simple:1.7.21'
-    compile group: 'org.sql2o', name: 'sql2o', version: '1.5.4'
-    compile 'com.google.code.gson:gson:2.5'
-    compile group: 'org.postgresql', name: 'postgresql', version: '9.3-1100-jdbc4' // ADD ME FOR POSTGRES VERSION 9.x
-    compile group: 'org.postgresql', name: 'postgresql', version: '42.2.2' // ADD ME FOR POSTGRES VERSION 10.x
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    implementation 'com.sparkjava:spark-core:2.9.3'
+    implementation 'org.slf4j:slf4j-simple:1.7.36'
+    implementation group: 'org.sql2o', name: 'sql2o', version: '1.5.4'
+    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation group: 'org.postgresql', name: 'postgresql', version: '9.3-1100-jdbc4' // ADD ME FOR POSTGRES VERSION 9.x
+    implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.2' // ADD ME FOR POSTGRES VERSION 10.x
 }
