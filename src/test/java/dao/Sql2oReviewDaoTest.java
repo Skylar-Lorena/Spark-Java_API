@@ -71,16 +71,32 @@ public class Sql2oReviewDaoTest {
         assertEquals(0, reviewDao.getAll().size());
     }
 
+    @Test
+    public void timeStampIsReturnedCorrectly() throws Exception {
+        Restaurant testRestaurant = setupRestaurant();
+        restaurantDao.add(testRestaurant);
+        Review testReview = new Review("Captain Kirk", 3,"foodcoma!", testRestaurant.getId());
+        reviewDao.add(testReview);
+
+        long creationTime = testReview.getCreatedat();
+        long savedTime = reviewDao.getAll().get(0).getCreatedat();
+        String formattedCreationTime = testReview.getFormattedCreatedAt();
+        String formattedSavedTime = reviewDao.getAll().get(0).getFormattedCreatedAt();
+        assertEquals(formattedCreationTime,formattedSavedTime);
+        assertEquals(creationTime, savedTime);
+    }
+
+
     //helpers
 
     public Review setupReview() {
-        Review review = new Review("great", "Kim", 4, 555);
+        Review review = new Review("great", 4, "Kim", 555);
         reviewDao.add(review);
         return review;
     }
 
     public Review setupReviewForRestaurant(Restaurant restaurant) {
-        Review review = new Review("great", "Kim", 4, restaurant.getId());
+        Review review = new Review("great", 4, "Kim", restaurant.getId());
         reviewDao.add(review);
         return review;
     }
