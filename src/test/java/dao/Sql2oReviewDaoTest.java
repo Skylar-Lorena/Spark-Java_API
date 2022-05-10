@@ -2,39 +2,54 @@ package dao;
 
 import models.Restaurant;
 import models.Review;
+import models.dao.Sql2oFoodtypeDao;
 import models.dao.Sql2oRestaurantDao;
 import models.dao.Sql2oReviewDao;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class Sql2oReviewDaoTest {
-    private Connection conn;
-    private Sql2oReviewDao reviewDao;
-    private Sql2oRestaurantDao restaurantDao;
+    private static Connection conn; //these variables are now static.
+    private static Sql2oRestaurantDao restaurantDao; //these variables are now static.
+    private static Sql2oFoodtypeDao foodtypeDao; //these variables are now static.
+    private static Sql2oReviewDao reviewDao; //these variables are now static.
 
-    @Before
-    public void setUp() throws Exception {
-        String connectionString = "jdbc:h2:mem:testing;INIT=RUNSCRIPT from 'classpath:db/create.sql'";
-        Sql2o sql2o = new Sql2o(connectionString, "", "");
-        reviewDao = new Sql2oReviewDao(sql2o);
+    @BeforeClass
+    public static void setUp() throws Exception {
+        String connectionString = "jdbc:postgresql://localhost:5432/jadle_test"; //connect to postgres test database
+        Sql2o sql2o = new Sql2o(connectionString, "v", "1234"); //changed user and pass to null for mac users...Linux & windows need strings
         restaurantDao = new Sql2oRestaurantDao(sql2o);
+        foodtypeDao = new Sql2oFoodtypeDao(sql2o);
+        reviewDao = new Sql2oReviewDao(sql2o);
         conn = sql2o.open();
     }
 
     @After
     public void tearDown() throws Exception {
+        System.out.println("clearing database");
+        restaurantDao.clearAll(); //clear all restaurants after every test
+        foodtypeDao.clearAll(); //clear all restaurants after every test
+        reviewDao.clearAll();
+    }
+
+    @AfterClass
+    public static void shutDown() throws Exception{ //changed to static
         conn.close();
+        System.out.println("connection closed");
     }
 
     @Test
     public void addingReviewSetsId() throws Exception {
-        Review testReview = setupReview();
-        assertEquals(1, testReview.getId());
+        Restaurant testRestaurant = setupRestaurant();
+        restaurantDao.add(testRestaurant);
+        Review testReview = new Review("Captain Kirk", 3, "foodcoma!",testRestaurant.getId());
+        int originalReviewId = testReview.getId();
+        reviewDao.add(testReview);
+        assertNotEquals(originalReviewId,testReview.getId());
     }
 
     @Test
