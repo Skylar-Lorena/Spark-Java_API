@@ -103,6 +103,26 @@ public class Sql2oFoodtypeDaoTest {
         assertEquals(0, restaurantDao.getAllFoodtypesByRestaurant(testRestaurant.getId()).size());
     }
 
+    @Test
+    public void deleteingFoodtypeAlsoUpdatesJoinTable() throws Exception {
+
+        Restaurant testRestaurant = setupRestaurant();
+
+        restaurantDao.add(testRestaurant);
+
+        Foodtype testFoodtype = setupNewFoodtype();
+        Foodtype otherFoodType = new Foodtype("Japanese");
+
+        foodtypeDao.add(testFoodtype);
+        foodtypeDao.add(otherFoodType);
+
+        foodtypeDao.addFoodtypeToRestaurant(testFoodtype, testRestaurant);
+        foodtypeDao.addFoodtypeToRestaurant(otherFoodType,testRestaurant);
+
+        foodtypeDao.deleteById(testRestaurant.getId());
+        assertEquals(0, foodtypeDao.getAllRestaurantsForAFoodtype(testFoodtype.getId()).size());
+    }
+
     // helpers
 
     public Foodtype setupNewFoodtype(){
@@ -110,14 +130,11 @@ public class Sql2oFoodtypeDaoTest {
     }
 
     public Restaurant setupRestaurant (){
-        Restaurant restaurant = new Restaurant("Fish Omena", "214 NE Safaricom", "97232", "254-402-9874", "http://fishwitch.com", "hellofishy@fishwitch.com");
-        restaurantDao.add(restaurant);
-        return restaurant;
+        return new Restaurant("Fish Omena", "214 NE Ngara", "97232", "254-402-9874", "http://fishwitch.com", "hellofishy@fishwitch.com");
     }
 
     public Restaurant setupAltRestaurant (){
-        Restaurant restaurant = new Restaurant("Fish Omena", "214 NE Safaricom", "97232", "254-402-9874");
-        restaurantDao.add(restaurant);
-        return restaurant;
+        return new Restaurant("Fish Omena", "214 NE Ngara", "97232", "254-402-9874");
     }
+
 }
