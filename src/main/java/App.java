@@ -1,12 +1,19 @@
 import static spark.Spark.*;
 
 import com.google.gson.Gson;
+import exceptions.ApiException;
+import models.Foodtype;
 import models.Restaurant;
+import models.Review;
 import models.dao.Sql2oFoodtypeDao;
 import models.dao.Sql2oRestaurantDao;
 import models.dao.Sql2oReviewDao;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class App {
     public static void main(String[] args) {
@@ -25,24 +32,87 @@ public class App {
         reviewDao = new Sql2oReviewDao(sql2o);
         conn = sql2o.open();
 
-        post("/restaurants/new", "application/json", (req, res) -> { //accept a request in format JSON from an app
-            Restaurant restaurant = gson.fromJson(req.body(), Restaurant.class);//make java from JSON with GSON
-            restaurantDao.add(restaurant);//Do our thing with our DAO
-            res.status(201);//A-OK! But why 201??
-            res.type("application/json");
-            return gson.toJson(restaurant);//send it back to be displayed
+        //CREATE
+        post("/restaurants/:restaurantId/reviews/new", "application/json", (req, res) -> {
+            int restaurantId = Integer.parseInt(req.params("restaurantId"));
+            Review review = gson.fromJson(req.body(), Review.class);
+
+            review.setRestaurantId(restaurantId); //we need to set this separately because it comes from our route, not our JSON input.
+            reviewDao.add(review);
+            res.status(201);
+            return gson.toJson(review);
         });
 
-        get("/restaurants", "application/json", (req, res) -> { //accept a request in format JSON from an app
-            res.type("application/json");
-            return gson.toJson(restaurantDao.getAll());//send it back to be displayed
+        post("/foodtypes/new", "application/json", (req, res) -> {
+            Foodtype foodtype = gson.fromJson(req.body(), Foodtype.class);
+            foodtypeDao.add(foodtype);
+            res.status(201);
+            return gson.toJson(foodtype);
+        });
+
+        //READ
+        get("/restaurants", "application/json", (req, res) -> {
+            System.out.println(restaurantDao.getAll());
+
+            if(restaurantDao.getAll().size() > 0){
+                return gson.toJson(restaurantDao.getAll());
+            }
+
+            else {
+                return "{\"message\":\"I'm sorry, but no restaurants are currently listed in the database.\"}";
+            }
+
         });
 
         get("/restaurants/:id", "application/json", (req, res) -> { //accept a request in format JSON from an app
-            res.type("application/json");
             int restaurantId = Integer.parseInt(req.params("id"));
-            res.type("application/json");
             return gson.toJson(restaurantDao.findById(restaurantId));
         });
+
+        get("/restaurants/:id/reviews", "application/json", (req, res) -> {
+            int restaurantId = Integer.parseInt(req.params("id"));
+
+            Restaurant restaurantToFind = restaurantDao.findById(restaurantId);
+            List<Review> allReviews;
+
+            if (restaurantToFind == null){
+                throw new ApiException(404, String.format("No restaurant with the id: \"%s\" exists", req.params("id")));
+            }
+
+            allReviews = reviewDao.getAllReviewsByRestaurant(restaurantId);
+
+            return gson.toJson(allReviews);
+        });
+
+        get("/foodtypes", "application/json", (req, res) -> {
+            return gson.toJson(foodtypeDao.getAll());
+        });
+
+
+        //CREATE
+        post("/restaurants/new", "application/json", (req, res) -> {
+            Restaurant restaurant = gson.fromJson(req.body(), Restaurant.class);
+            restaurantDao.add(restaurant);
+            res.status(201);
+            return gson.toJson(restaurant);
+        });
+
+
+        //FILTERS
+        exception(ApiException.class, (exception, req, res) -> {
+            ApiException err = (ApiException) exception;
+            Map<String, Object> jsonMap = new HashMap<>();
+            jsonMap.put("status", err.getStatusCode());
+            jsonMap.put("errorMessage", err.getMessage());
+            res.type("application/json");
+            res.status(err.getStatusCode());
+            res.body(gson.toJson(jsonMap));
+        });
+
+
+        after((req, res) ->{
+            res.type("application/json");
+        });
+
     }
 }
