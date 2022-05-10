@@ -1,5 +1,6 @@
 package dao;
 
+import models.Foodtype;
 import models.Restaurant;
 import models.dao.Sql2oFoodtypeDao;
 import models.dao.Sql2oRestaurantDao;
@@ -10,6 +11,8 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
+
+import java.util.Arrays;
 
 public class Sql2oRestaurantDaoTest {
     private Connection conn;
@@ -84,6 +87,25 @@ public class Sql2oRestaurantDaoTest {
         restaurantDao.clearAll();
         assertEquals(0, restaurantDao.getAll().size());
     }
+
+    @Test
+    public void RestaurantReturnsFoodtypesCorrectly() throws Exception {
+        Foodtype testFoodtype  = new Foodtype("Seafood");
+        foodtypeDao.add(testFoodtype);
+
+        Foodtype otherFoodtype  = new Foodtype("Bar Food");
+        foodtypeDao.add(otherFoodtype);
+
+        Restaurant testRestaurant = setupRestaurant();
+        restaurantDao.add(testRestaurant);
+        restaurantDao.addRestaurantToFoodtype(testRestaurant,testFoodtype);
+        restaurantDao.addRestaurantToFoodtype(testRestaurant,otherFoodtype);
+
+        Foodtype[] foodtypes = {testFoodtype, otherFoodtype}; //oh hi what is this?
+
+        assertEquals(Arrays.asList(foodtypes), restaurantDao.getAllFoodtypesByRestaurant(testRestaurant.getId()));
+    }
+
 
     //helpers
 
