@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
 
-public class Review {
+public class Review implements Comparable<Review> {
     private String content;
     private String writtenBy;
     private int rating;
@@ -20,6 +20,20 @@ public class Review {
         this.restaurantId = restaurantId;
         this.createdat = System.currentTimeMillis();
         setFormattedCreatedAt(); //we'll make me in a minute
+    }
+
+    @Override
+    public int compareTo(Review reviewObject) {
+        if (this.createdat < reviewObject.createdat)
+        {
+            return -1; //this object was made earlier than the second object.
+        }
+        else if (this.createdat > reviewObject.createdat){ //this object was made later than the second object
+            return 1;
+        }
+        else {
+            return 0; //they were made at the same time, which is very unlikely, but mathematically not impossible.
+        }
     }
 
     public long getCreatedat() {
